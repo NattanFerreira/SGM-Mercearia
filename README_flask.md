@@ -18,5 +18,6 @@ python app.py
 ```
 
 Observações:
+
 - O banco SQLite `sgm.db` será criado automaticamente na primeira execução.
 - Use as telas: Clientes, Dívidas, Usuários e Dashboard.

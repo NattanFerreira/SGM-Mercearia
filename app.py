@@ -1,6 +1,8 @@
 from flask import Flask
-from web.models import db
+from web.models import db, Usuario
+from werkzeug.security import generate_password_hash
 from web.routes import register_routes
+
 
 def create_app():
     app = Flask(__name__)
@@ -14,8 +16,14 @@ def create_app():
 
     with app.app_context():
         db.create_all()
+        # criar usuário inicial de teste (admin) se não existir
+        if not Usuario.query.filter_by(nome='adm').first():
+            adm = Usuario(nome='adm', cpf=None, email='adm', senha_hash=generate_password_hash('adm'), tipo='Administrador')
+            db.session.add(adm)
+            db.session.commit()
 
     return app
+
 
 if __name__ == '__main__':
     app = create_app()

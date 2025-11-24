@@ -1,17 +1,22 @@
-{% extends 'base.html' %}
-{% block content %}
-  <h1>Clientes</h1>
-  <p><a href="{{ url_for('main.novo_cliente') }}">Novo Cliente</a></p>
-  <table>
-    <tr><th>ID</th><th>Nome</th><th>CPF</th><th>Limite</th><th>Ações</th></tr>
-    {% for c in clientes %}
-      <tr>
-        <td>{{ c.id }}</td>
-        <td>{{ c.nome }}</td>
-        <td>{{ c.cpf }}</td>
-        <td>R$ {{ '%.2f'|format(c.limite_credito) }}</td>
-        <td></td>
-      </tr>
-    {% endfor %}
-  </table>
+{% extends 'base.html' %} {% block content %}
+<h1>Clientes</h1>
+<p><a href="{{ url_for('main.novo_cliente') }}">Novo Cliente</a></p>
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Nome</th>
+    <th>CPF</th>
+    <th>Limite</th>
+    <th>Ações</th>
+  </tr>
+  {% for c in clientes %}
+  <tr>
+    <td>{{ c.id }}</td>
+    <td>{{ c.nome }}</td>
+    <td>{{ c.cpf }}</td>
+    <td>R$ {{ '%.2f'|format(c.limite_credito) }}</td>
+    <td></td>
+  </tr>
+  {% endfor %}
+</table>
 {% endblock %}

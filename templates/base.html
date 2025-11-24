@@ -1,33 +1,125 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-br">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SGM - Mercearia</title>
     <style>
-      body{font-family: Arial, sans-serif; margin: 20px;}
-      nav a{margin-right: 10px}
-      table{border-collapse: collapse; width:100%}
-      th,td{border:1px solid #ddd;padding:8px}
-      .flash{background:#e7f5e6;padding:10px;margin-bottom:10px}
+      :root{--accent:#2b8a7a;--muted:#f2f2f2}
+      body{font-family: Arial, sans-serif; margin:0;background:#2f7f86;color:#222}
+      header{background:#f39c12;padding:10px;color:#fff;display:flex;align-items:center;justify-content:space-between}
+      header .left, header .center, header .right{display:flex;align-items:center}
+      header .center{flex:1;justify-content:center}
+      .app-wrap{display:grid;grid-template-columns:260px 1fr 260px;grid-template-rows:auto 1fr auto;gap:10px;min-height:calc(100vh - 20px);padding:10px}
+      aside{background:#3aa0a8;padding:10px;border-radius:6px;color:#fff}
+      main{background:#efe6b1;padding:16px;border-radius:6px;min-height:400px}
+      footer{grid-column:1/-1;background:#f6c0c0;padding:10px;border-radius:6px}
+      .flash{background:#e7f5e6;padding:10px;margin-bottom:10px;color:#064}
+      .btn{background:#4caf50;color:#fff;border:none;padding:8px 10px;border-radius:4px;cursor:pointer}
+      .icon-gear{margin-left:8px;cursor:pointer}
+      .search-input{width:100%;padding:8px;border-radius:4px;border:0}
+      .client-list{margin-top:10px;background:rgba(0,0,0,0.12);padding:6px;height:420px;overflow:auto}
     </style>
+    <script>
+      function goHome(){ window.location.href = {{ url_for('main.home')|tojson }}; }
+      function logout(){ window.location.href = {{ url_for('main.logout')|tojson }}; }
+    </script>
   </head>
   <body>
-    <nav>
-      <a href="{{ url_for('main.listar_clientes') }}">Clientes</a>
-      <a href="{{ url_for('main.listar_dividas') }}">Dívidas</a>
-      <a href="{{ url_for('main.listar_usuarios') }}">Usuários</a>
-      <a href="{{ url_for('main.relatorio_dashboard') }}">Dashboard</a>
-    </nav>
 
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        {% for m in messages %}
-          <div class="flash">{{ m }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
+    {% if session.get('user_id') %}
+      <header>
+        <div class="left"><button class="btn" onclick="goHome()">◀ Início</button></div>
+        <div class="center"><strong>{{ session.get('user_nome') }}</strong></div>
+        <div class="right">
+          {% if session.get('user_tipo') == 'Administrador' %}
+            <a href="{{ url_for('main.admin_usuarios') }}" class="icon-gear">⚙</a>
+          {% endif %}
+          <button class="btn" onclick="logout()">Sair</button>
+        </div>
+      </header>
 
-    {% block content %}{% endblock %}
+      <div class="app-wrap">
+        <aside>
+          <input id="client-search" class="search-input" placeholder="nome do cliente">
+          <button id="btn-new-client" class="btn" style="float:right;margin-top:-40px">+</button>
+          <div id="client-list" class="client-list"></div>
+        </aside>
+
+        <main id="main-content">
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              {% for m in messages %}
+                <div class="flash">{{ m }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
+
+          {% block content %}{% endblock %}
+        </main>
+
+        <aside style="background:#487f8a;color:#fff;padding:10px;border-radius:6px">
+          <!-- espaço lateral direito para extras -->
+          <h4>Atalhos</h4>
+          <ul>
+            <li><a href="{{ url_for('main.listar_dividas') }}">Ver Dívidas</a></li>
+            <li><a href="{{ url_for('main.relatorio_dashboard') }}">Dashboard</a></li>
+          </ul>
+        </aside>
+
+        <footer>SGM - Mercearia • Sistema</footer>
+      </div>
+
+      <script>
+        async function fetchClients(q=''){
+          const res = await fetch('/api/clientes?q='+encodeURIComponent(q))
+          const data = await res.json()
+          const list = document.getElementById('client-list')
+          list.innerHTML = ''
+          data.forEach(c=>{
+            const el = document.createElement('div')
+            el.textContent = c.nome
+            el.style.padding='6px'
+            el.style.cursor='pointer'
+            el.onclick = async ()=>{ loadClient(c.id) }
+            list.appendChild(el)
+          })
+        }
+
+        async function loadClient(id){
+          const res = await fetch('/api/cliente/'+id)
+          const data = await res.json()
+          const main = document.getElementById('main-content')
+          // construir perfil do cliente
+          let html = `<h2>${data.nome} (ID: ${data.id})</h2>`
+          html += `<p>CPF: ${data.cpf || ''} • Cel: ${data.celular || ''}</p>`
+          html += `<p>Endereço: ${data.endereco || ''}</p>`
+          html += `<div style="margin-top:10px"><button class='btn' onclick="location.href='/dividas/novo?cliente_id=${data.id}'">Lançar Dívida</button> <button class='btn' onclick="location.href='/dividas'">Lançar Pagamento</button></div>`
+          html += `<h3>Histórico de Dívidas</h3>`
+          data.dividas.forEach(d=>{
+            html += `<div style='background:#fff;padding:8px;margin:8px 0;color:#000'><strong>ID ${d.id}</strong> - ${d.descricao}<br>Valor: R$ ${d.valor_original.toFixed(2)} • Saldo: R$ ${d.saldo.toFixed(2)} • Venc.: ${d.vencimento} • Status: ${d.status}`
+            if(d.pagamentos.length){ html += '<br><em>Pagamentos:</em>' + d.pagamentos.map(p=>`<div>${p.data} R$ ${p.valor.toFixed(2)} (${p.meio})</div>`).join('') }
+            if(d.renegociacoes.length){ html += '<br><em>Renegociações:</em>' + d.renegociacoes.map(r=>`<div>${r.data} → ${r.nova_data_venc} (+${r.juros}%)</div>`).join('') }
+            html += `</div>`
+          })
+          main.innerHTML = html
+        }
+
+        document.getElementById('client-search').addEventListener('input', (e)=>{ fetchClients(e.target.value) })
+        document.getElementById('btn-new-client').addEventListener('click', ()=>{ location.href='/clientes/novo' })
+        // carregar lista inicial
+        fetchClients()
+      </script>
+
+    {% else %}
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for m in messages %}
+            <div class="flash">{{ m }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <div style="padding:40px"></div>
+    {% endif %}
   </body>
 </html>

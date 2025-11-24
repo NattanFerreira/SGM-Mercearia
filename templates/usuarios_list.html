@@ -1,16 +1,29 @@
-{% extends 'base.html' %}
-{% block content %}
-  <h1>Usuários</h1>
-  <p><a href="{{ url_for('main.novo_usuario') }}">Novo Usuário</a></p>
-  <table>
-    <tr><th>ID</th><th>Nome</th><th>Tipo</th><th>Email</th></tr>
-    {% for u in usuarios %}
-      <tr>
+{% extends 'base.html' %} {% block content %}
+<h1>Usuários</h1>
+{% if session.get('user_tipo') == 'Administrador' %}
+  <p><a href="{{ url_for('main.admin_novo_usuario') }}">Novo Usuário</a></p>
+{% endif %}
+<table>
+  <tr>
+    <th>ID</th>
+    <th>Nome</th>
+    <th>Tipo</th>
+    <th>Email</th>
+  </tr>
+  {% for u in usuarios %}
+    <tr>
         <td>{{ u.id }}</td>
         <td>{{ u.nome }}</td>
         <td>{{ u.tipo }}</td>
         <td>{{ u.email }}</td>
+        {% if session.get('user_tipo') == 'Administrador' %}
+          <td>
+            <form method="post" action="{{ url_for('main.admin_delete_usuario', uid=u.id) }}" style="display:inline">
+              <button class="btn" type="submit">Remover</button>
+            </form>
+          </td>
+        {% endif %}
       </tr>
-    {% endfor %}
-  </table>
+  {% endfor %}
+</table>
 {% endblock %}

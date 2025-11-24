@@ -1,17 +1,25 @@
-{% extends 'base.html' %}
-{% block content %}
-  <h1>Nova Dívida</h1>
-  <form method="post">
-    <label>Cliente<br>
-      <select name="cliente_id">
-        {% for c in clientes %}
-          <option value="{{ c.id }}">{{ c.nome }} (ID: {{ c.id }})</option>
-        {% endfor %}
-      </select>
-    </label><br>
-    <label>Valor (R$)<br><input type="number" step="0.01" name="valor" required></label><br>
-    <label>Descrição<br><input type="text" name="descricao"></label><br>
-    <label>Prazo (dias)<br><input type="number" name="prazo" value="30"></label><br>
-    <button type="submit">Registrar</button>
-  </form>
+{% extends 'base.html' %} {% block content %}
+<h1>Nova Dívida</h1>
+<form method="post">
+  <label
+    >Cliente<br />
+    <select name="cliente_id">
+      {% for c in clientes %}
+        <option value="{{ c.id }}" {% if preselect and preselect|int == c.id %}selected{% endif %}>{{ c.nome }} (ID: {{ c.id }})</option>
+      {% endfor %}
+    </select> </label
+  ><br />
+  <label
+    >Valor (R$)<br /><input
+      type="number"
+      step="0.01"
+      name="valor"
+      required /></label
+  ><br />
+  <label>Descrição<br /><input type="text" name="descricao" /></label><br />
+  <label
+    >Prazo (dias)<br /><input type="number" name="prazo" value="30" /></label
+  ><br />
+  <button type="submit">Registrar</button>
+</form>
 {% endblock %}

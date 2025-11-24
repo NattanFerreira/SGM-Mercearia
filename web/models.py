@@ -44,18 +44,22 @@ class Divida(db.Model):
     renegociacoes = db.relationship('Renegociacao', backref='divida', lazy=True)
 
     def aplicar_pagamento(self, pagamento):
-        self.pagamentos.append(pagamento)
+        # aplicar pagamento persistente
         self.saldo_devedor -= pagamento.valor
         if self.saldo_devedor <= 0:
             self.saldo_devedor = 0.0
             self.status = 'Paga'
+
+    def registrar_pagamento(self, pagamento):
+        db.session.add(pagamento)
+        self.aplicar_pagamento(pagamento)
 
     def renegociar(self, nova_data, juros_percent, usuario_responsavel):
         acrescimo = self.saldo_devedor * (juros_percent / 100)
         self.saldo_devedor += acrescimo
         self.data_vencimento = nova_data
         self.status = 'Renegociada'
-        reneg = Renegociacao(divida=self, nova_data_venc=nova_data, juros_percent=juros_percent, usuario_responsavel=usuario_responsavel)
+        reneg = Renegociacao(divida_id=self.id, nova_data_venc=nova_data, juros_percent=juros_percent, usuario_responsavel=usuario_responsavel)
         db.session.add(reneg)
 
 class Pagamento(db.Model):
