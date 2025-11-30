@@ -61,7 +61,7 @@ def register_routes(app):
 
             # KPIs
             total_a_receber = sum(d.saldo_devedor for d in dividas if d.status != 'Paga')
-            total_vencido = sum(d.saldo_devedor for d in dividas if d.status != 'Paga' and d.data_vencimento < hoje)
+            total_vencido = sum(d.saldo_devedor for d in dividas if d.status != 'Paga' and d.data_vencimento <= hoje)
             qtd_pagas = sum(1 for d in dividas if d.status == 'Paga')
 
             # Ranking top devedores (aberto)
@@ -75,11 +75,22 @@ def register_routes(app):
             top_labels = [n for n, _ in ranking_ordenado]
             top_values = [v for _, v in ranking_ordenado]
 
-            # Status/atraso
-            abertas = [d for d in dividas if d.status != 'Paga']
-            pagas_ct = len([d for d in dividas if d.status == 'Paga'])
-            vencidas_ct = len([d for d in abertas if d.data_vencimento < hoje])
-            em_dia_ct = len(abertas) - vencidas_ct
+            # Status/atraso - contagem refinada
+            pagas_ct = 0
+            renegociadas_ct = 0
+            vencidas_ct = 0
+            em_dia_ct = 0
+            
+            for d in dividas:
+                if d.status == 'Paga' or d.saldo_devedor <= 0:
+                    pagas_ct += 1
+                elif d.data_vencimento <= hoje and d.saldo_devedor > 0:
+                    # Vencida tem prioridade sobre status (inclui hoje)
+                    vencidas_ct += 1
+                elif d.status == 'Renegociada' and d.saldo_devedor > 0:
+                    renegociadas_ct += 1
+                elif d.saldo_devedor > 0:
+                    em_dia_ct += 1
 
             # Pagamentos por meio
             meio_map = {}
@@ -123,8 +134,8 @@ def register_routes(app):
                 # dados para gráficos
                 top_labels=top_labels,
                 top_values=top_values,
-                status_labels=['Pagas', 'Em dia', 'Vencidas'],
-                status_values=[pagas_ct, em_dia_ct, vencidas_ct],
+                status_labels=['Pagas', 'Em dia', 'Renegociadas', 'Vencidas'],
+                status_values=[pagas_ct, em_dia_ct, renegociadas_ct, vencidas_ct],
                 meio_labels=meio_labels,
                 meio_values=meio_values,
                 month_labels=labels_month,
@@ -308,6 +319,23 @@ def register_routes(app):
             return redirect(url_for('main.listar_dividas'))
 
         return render_template('pagar_form.html', divida=divida)
+
+    @bp.route('/dividas/<int:divida_id>/renegociar', methods=['GET', 'POST'])
+    @require_login
+    def renegociar_divida(divida_id):
+        divida = Divida.query.get_or_404(divida_id)
+        if request.method == 'POST':
+            prazo_dias = int(request.form.get('prazo_dias') or 30)
+            juros = float(request.form.get('juros') or 0.0)
+            usuario = session.get('user_nome', 'Operador')
+            
+            nova_data = date.today() + timedelta(days=prazo_dias)
+            divida.renegociar(nova_data, juros, usuario)
+            db.session.commit()
+            flash('Dívida renegociada com sucesso.')
+            return redirect(url_for('main.home'))
+        
+        return render_template('renegociar_form.html', divida=divida)
 
     # ---------------- Relatórios ----------------
     @bp.route('/relatorios/dashboard')
