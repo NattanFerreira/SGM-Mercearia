@@ -1,16 +1,94 @@
 {% extends 'base.html' %} {% block content %} {% if dashboard %}
 <h1>Dashboard</h1>
-<p>Total a Receber: R$ {{ '%.2f'|format(total_a_receber) }}</p>
-<p>Total Vencido: R$ {{ '%.2f'|format(total_vencido) }}</p>
-<p>Dívidas Quitadas: {{ qtd_pagas }}</p>
-<h3>Top Devedores</h3>
-<ul>
-  {% for nome, valor in ranking %}
-  <li>{{ nome }} — R$ {{ '%.2f'|format(valor) }}</li>
-  {% endfor %}
-</ul>
+<div class="grid two" style="margin-top: 10px">
+  <div class="card">
+    <div class="muted" style="font-size: 0.85rem">Total a Receber</div>
+    <div style="font-size: 1.6rem; font-weight: 800">
+      R$ {{ '%.2f'|format(total_a_receber) }}
+    </div>
+  </div>
+  <div class="card">
+    <div class="muted" style="font-size: 0.85rem">Total Vencido</div>
+    <div style="font-size: 1.6rem; font-weight: 800">
+      R$ {{ '%.2f'|format(total_vencido) }}
+    </div>
+  </div>
+</div>
+<div class="grid two" style="margin-top: 10px">
+  <div class="card">
+    <div class="muted" style="font-size: 0.85rem">Dívidas Quitadas</div>
+    <div style="font-size: 1.6rem; font-weight: 800">{{ qtd_pagas }}</div>
+  </div>
+  <div class="card">
+    <div class="muted" style="font-size: 0.85rem">Status das Dívidas</div>
+    <canvas id="chartStatus" height="160"></canvas>
+  </div>
+</div>
+
+<div class="grid two" style="margin-top: 10px">
+  <div class="card">
+    <div class="muted" style="font-size: 0.85rem">Top Devedores</div>
+    <canvas id="chartTop" height="180"></canvas>
+  </div>
+  <div class="card">
+    <div class="muted" style="font-size: 0.85rem">Dívidas criadas por mês</div>
+    <canvas id="chartMeses" height="180"></canvas>
+  </div>
+</div>
+
+<div class="card" style="margin-top: 10px">
+  <div class="muted" style="font-size: 0.85rem">Pagamentos por meio</div>
+  <canvas id="chartMeios" height="140"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  const fmt = (n)=> Number(n||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  // Dados do servidor
+  const topLabels = {{ top_labels|tojson|safe }};
+  const topValues = {{ top_values|tojson|safe }};
+  const statusLabels = {{ status_labels|tojson|safe }};
+  const statusValues = {{ status_values|tojson|safe }};
+  const meioLabels = {{ meio_labels|tojson|safe }};
+  const meioValues = {{ meio_values|tojson|safe }};
+  const monthLabels = {{ month_labels|tojson|safe }};
+  const monthValues = {{ month_values|tojson|safe }};
+
+  // Chart helpers
+  const colors = {
+    primary: '#176b87', accent: '#2b8a7a', accent2: '#6cc8b0', orange: '#f59e0b', red: '#ef4444', blue: '#3b82f6', teal: '#14b8a6'
+  };
+
+  // Status (doughnut)
+  new Chart(document.getElementById('chartStatus'), {
+    type: 'doughnut',
+    data: { labels: statusLabels, datasets: [{ data: statusValues, backgroundColor: [colors.accent, colors.blue, colors.red] }] },
+    options: { plugins: { legend: { position: 'bottom' } } }
+  });
+
+  // Top devedores (bar)
+  new Chart(document.getElementById('chartTop'), {
+    type: 'bar',
+    data: { labels: topLabels, datasets: [{ label: 'Aberto (R$)', data: topValues, backgroundColor: colors.primary }] },
+    options: { scales: { y: { ticks: { callback: (v)=> 'R$ ' + fmt(v) } } } }
+  });
+
+  // Dívidas por mês (line)
+  new Chart(document.getElementById('chartMeses'), {
+    type: 'line',
+    data: { labels: monthLabels, datasets: [{ label: 'Valor de dívidas criadas (R$)', data: monthValues, borderColor: colors.orange, backgroundColor: 'rgba(245, 158, 11, .15)', fill: true, tension: .35 }] },
+    options: { scales: { y: { ticks: { callback: (v)=> 'R$ ' + fmt(v) } } } }
+  });
+
+  // Pagamentos por meio (pie)
+  new Chart(document.getElementById('chartMeios'), {
+    type: 'pie',
+    data: { labels: meioLabels, datasets: [{ data: meioValues, backgroundColor: [colors.accent, colors.primary, colors.orange, colors.teal, colors.red] }] },
+    options: { plugins: { legend: { position: 'bottom' } } }
+  });
+</script>
 {% else %}
-<div style="padding: 40px; color: #333; background: #fff; border-radius: 6px">
+<div class="card" style="padding: 24px">
   Selecione um cliente no lado esquerdo para ver o perfil.
 </div>
 {% endif %} {% endblock %}

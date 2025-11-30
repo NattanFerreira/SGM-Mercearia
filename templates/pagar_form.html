@@ -1,7 +1,7 @@
 {% extends 'base.html' %} {% block content %}
 <h1>Pagar Dívida #{{ divida.id }}</h1>
 <p>Cliente: {{ divida.cliente.nome }}</p>
-<p>Saldo atual: R$ {{ '%.2f'|format(divida.saldo_devedor) }}</p>
+<p>Restante atual: R$ {{ '%.2f'|format(divida.saldo_devedor) }}</p>
 <form method="post">
   <label
     >Valor (R$)<br /><input

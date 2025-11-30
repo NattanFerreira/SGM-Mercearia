@@ -6,44 +6,65 @@
     <title>SGM - Mercearia</title>
     <style>
       :root {
-        --accent: #2b8a7a;
-        --muted: #f2f2f2;
-        --bg: #f4f7f6;
-        --panel: #ffffff;
         --primary: #176b87;
+        --accent: #2b8a7a;
+        --accent-2: #6cc8b0;
+        --bg: #f5f7fb;
+        --panel: #ffffff;
+        --text: #0f1720;
+        --muted: #64748b;
+        --success: #16a34a;
+        --warning: #d97706;
+        --danger: #dc2626;
+        --shadow: 0 6px 18px rgba(15, 23, 32, 0.06);
+        --ring: 0 0 0 3px rgba(23, 107, 135, 0.15);
+        --radius: 12px;
+      }
+      * {
+        box-sizing: border-box;
       }
       body {
         font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial,
           sans-serif;
         margin: 0;
-        background: var(--bg);
-        color: #0f1720;
+        background: radial-gradient(
+            1200px 800px at 80% -100px,
+            #eaf6ff 0%,
+            transparent 60%
+          ),
+          var(--bg);
+        color: var(--text);
       }
       header {
-        background: linear-gradient(90deg, var(--primary), #2b8a7a);
+        background: linear-gradient(90deg, var(--primary), var(--accent));
         padding: 12px 18px;
         color: #fff;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        box-shadow: 0 6px 18px rgba(15, 23, 32, 0.06);
+        box-shadow: var(--shadow);
+        position: sticky;
+        top: 0;
+        z-index: 10;
       }
       header .left,
       header .center,
       header .right {
         display: flex;
         align-items: center;
+        gap: 10px;
       }
       header .center {
         flex: 1;
         justify-content: center;
         font-weight: 600;
       }
+
       .app-wrap {
         display: grid;
-        grid-template-columns: 280px 1fr 240px;
+        grid-template-columns: 300px 1fr;
         gap: 18px;
-        min-height: calc(100vh - 36px);
+        min-height: calc(100vh - 48px);
         padding: 18px;
         max-width: 1200px;
         margin: 18px auto;
@@ -51,17 +72,31 @@
       aside {
         background: var(--panel);
         padding: 14px;
-        border-radius: 10px;
-        color: #0f1720;
-        box-shadow: 0 6px 18px rgba(15, 23, 32, 0.04);
+        border-radius: var(--radius);
+        color: var(--text);
+        box-shadow: var(--shadow);
       }
       main {
         background: var(--panel);
-        padding: 20px;
-        border-radius: 10px;
-        min-height: 520px;
-        box-shadow: 0 6px 18px rgba(15, 23, 32, 0.04);
+        padding: 22px;
+        border-radius: var(--radius);
+        min-height: 560px;
+        box-shadow: var(--shadow);
       }
+      h1 {
+        font-size: 1.6rem;
+        margin: 0 0 12px;
+      }
+      h2 {
+        font-size: 1.3rem;
+        margin: 0 0 10px;
+      }
+      h3 {
+        font-size: 1.1rem;
+        margin: 18px 0 8px;
+        color: var(--muted);
+      }
+
       .no-content {
         display: flex;
         align-items: center;
@@ -74,39 +109,114 @@
         padding: 10px;
         margin-bottom: 10px;
         color: #064;
-        border-radius: 6px;
+        border-radius: 10px;
+        border: 1px solid #b7e4c7;
       }
-      .btn {
+
+      /* Buttons */
+      .btn,
+      button {
         background: var(--accent);
         color: #fff;
         border: none;
-        padding: 8px 12px;
-        border-radius: 8px;
+        padding: 10px 14px;
+        border-radius: 10px;
         cursor: pointer;
         font-weight: 600;
+        transition: transform 0.08s ease, filter 0.12s ease,
+          box-shadow 0.12s ease;
+      }
+      .btn:hover,
+      button:hover {
+        filter: brightness(1.05);
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(43, 138, 122, 0.25);
+      }
+      .btn:active,
+      button:active {
+        transform: translateY(0);
+        box-shadow: none;
       }
       .btn.ghost {
         background: transparent;
         color: var(--primary);
+        border: 1px solid rgba(23, 107, 135, 0.18);
         box-shadow: none;
-        border: 1px solid rgba(23, 107, 135, 0.08);
+      }
+      .btn.ghost:hover {
+        background: rgba(23, 107, 135, 0.06);
+      }
+      .btn.outline {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
       }
       .btn.small {
         padding: 6px 8px;
         font-size: 0.9rem;
-        border-radius: 6px;
-      }
-      .icon-gear {
-        margin-left: 8px;
-        cursor: pointer;
-        font-size: 1.1rem;
-      }
-      .search-input {
-        width: 100%;
-        padding: 10px;
         border-radius: 8px;
+      }
+      .btn.round {
+        border-radius: 999px;
+        width: 40px;
+        height: 40px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        padding: 0;
+      }
+
+      /* Inputs */
+      input[type="text"],
+      input[type="number"],
+      input[type="password"],
+      input[type="email"],
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
         border: 1px solid #e6eef0;
         background: #fbfcfc;
+        outline: none;
+        transition: box-shadow 0.15s ease, border-color 0.15s ease;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--primary);
+        box-shadow: var(--ring);
+      }
+      label {
+        color: var(--muted);
+        font-size: 0.92rem;
+        display: inline-block;
+        margin: 6px 0 4px;
+      }
+      form button,
+      form .btn {
+        margin-top: 6px;
+      }
+
+      /* Lists and search */
+      .search-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .search-input {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid #e6eef0;
+        background: #fbfcfc;
+        outline: none;
+        transition: box-shadow 0.15s ease, border-color 0.15s ease;
+      }
+      .search-input:focus {
+        border-color: var(--primary);
+        box-shadow: var(--ring);
       }
       .client-list {
         margin-top: 12px;
@@ -116,32 +226,126 @@
       }
       .client-item {
         padding: 10px;
-        border-radius: 8px;
+        border-radius: 10px;
         background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), transparent);
         margin-bottom: 8px;
         cursor: pointer;
         transition: all 0.12s;
+        border: 1px solid #eef3f4;
       }
       .client-item:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(15, 23, 32, 0.06);
+        box-shadow: var(--shadow);
       }
       .client-item.active {
-        background: linear-gradient(90deg, var(--accent), #6cc8b0);
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
         color: #fff;
+        border-color: transparent;
       }
       .client-name {
         font-weight: 600;
       }
       .muted {
-        color: #64748b;
+        color: var(--muted);
       }
+
+      /* Cards & helpers */
+      .card {
+        background: #fff;
+        border: 1px solid #eef3f4;
+        border-radius: 12px;
+        padding: 14px;
+        box-shadow: 0 4px 16px rgba(15, 23, 32, 0.04);
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .row.between {
+        justify-content: space-between;
+      }
+      .grid.two {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .badge.info {
+        background: rgba(23, 107, 135, 0.12);
+        color: var(--primary);
+      }
+      .badge.success {
+        background: rgba(22, 163, 74, 0.12);
+        color: var(--success);
+      }
+      .badge.warning {
+        background: rgba(217, 119, 6, 0.12);
+        color: var(--warning);
+      }
+      .badge.danger {
+        background: rgba(220, 38, 38, 0.12);
+        color: var(--danger);
+      }
+      .section-title {
+        color: var(--muted);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 0.78rem;
+        margin: 20px 0 8px;
+      }
+
+      /* Tables */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border: 1px solid #eef3f4;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(15, 23, 32, 0.04);
+      }
+      table th,
+      table td {
+        padding: 12px 14px;
+        text-align: left;
+      }
+      table thead th {
+        background: #f7fafc;
+        color: #334155;
+        font-weight: 700;
+        font-size: 0.9rem;
+      }
+      table tbody tr {
+        border-top: 1px solid #f1f5f9;
+      }
+      table tbody tr:hover {
+        background: #f8fbfc;
+      }
+
+      .icon-gear {
+        margin-left: 8px;
+        cursor: pointer;
+        font-size: 1.1rem;
+      }
+
       @media (max-width: 900px) {
         .app-wrap {
           grid-template-columns: 1fr;
           grid-template-rows: auto auto;
           max-width: 92%;
           padding: 12px;
+        }
+        .grid.two {
+          grid-template-columns: 1fr;
         }
       }
     </style>
@@ -167,18 +371,20 @@
 
     <div class="app-wrap">
       <aside>
-        <input
-          id="client-search"
-          class="search-input"
-          placeholder="nome do cliente"
-        />
-        <button
-          id="btn-new-client"
-          class="btn"
-          style="float: right; margin-top: -40px"
-        >
-          +
-        </button>
+        <div class="search-row">
+          <input
+            id="client-search"
+            class="search-input"
+            placeholder="Buscar cliente..."
+          />
+          <button
+            id="btn-new-client"
+            class="btn round"
+            title="Adicionar novo cliente"
+          >
+            +
+          </button>
+        </div>
         <div id="client-list" class="client-list"></div>
       </aside>
 
@@ -188,27 +394,6 @@
         <div class="flash">{{ m }}</div>
         {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
       </main>
-
-      <aside
-        style="
-          background: var(--panel);
-          color: #0f1720;
-          padding: 10px;
-          border-radius: 6px;
-        "
-      >
-        <!-- espaço lateral direito para extras -->
-        <h4>Atalhos</h4>
-        <ul>
-          <li>
-            <a href="{{ url_for('main.listar_dividas') }}">Ver Dívidas</a>
-          </li>
-          <li>
-            <a href="{{ url_for('main.relatorio_dashboard') }}">Dashboard</a>
-          </li>
-        </ul>
-      </aside>
-      <!-- footer removed as requested -->
     </div>
 
     <script>
@@ -234,46 +419,128 @@
         });
       }
 
+      function fmtMoney(n) {
+        return Number(n || 0).toLocaleString("pt-BR", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+      }
+      function fmtDate(iso) {
+        try {
+          const d = new Date(iso);
+          return d.toLocaleDateString("pt-BR");
+        } catch (e) {
+          return iso;
+        }
+      }
+
       async function loadClient(id) {
         const res = await fetch("/api/cliente/" + id);
         const data = await res.json();
         const main = document.getElementById("main-content");
         // construir perfil do cliente
-        let html = `<h2>${data.nome} (ID: ${data.id})</h2>`;
-        html += `<p>CPF: ${data.cpf || ""} • Cel: ${data.celular || ""}</p>`;
-        html += `<p>Endereço: ${data.endereco || ""}</p>`;
-        html += `<div style="margin-top:10px"><button class='btn' onclick="location.href='/dividas/novo?cliente_id=${data.id}'">Lançar Dívida</button> <button class='btn' onclick="location.href='/dividas'">Lançar Pagamento</button></div>`;
-        html += `<h3>Histórico de Dívidas</h3>`;
-        data.dividas.forEach((d) => {
-          html += `<div style='background:#fff;padding:8px;margin:8px 0;color:#000'><strong>ID ${
-            d.id
-          }</strong> - ${d.descricao}<br>Valor: R$ ${d.valor_original.toFixed(
-            2
-          )} • Saldo: R$ ${d.saldo.toFixed(2)} • Venc.: ${
-            d.vencimento
-          } • Status: ${d.status}`;
-          if (d.pagamentos.length) {
-            html +=
-              "<br><em>Pagamentos:</em>" +
-              d.pagamentos
-                .map(
-                  (p) =>
-                    `<div>${p.data} R$ ${p.valor.toFixed(2)} (${p.meio})</div>`
-                )
-                .join("");
-          }
-          if (d.renegociacoes.length) {
-            html +=
-              "<br><em>Renegociações:</em>" +
-              d.renegociacoes
-                .map(
-                  (r) =>
-                    `<div>${r.data} → ${r.nova_data_venc} (+${r.juros}%)</div>`
-                )
-                .join("");
-          }
-          html += `</div>`;
-        });
+        let html = ``;
+        html += `<div class="card" style="margin-bottom:12px;">
+            <div class="row between">
+              <div>
+                <h2 style="margin:0">${data.nome}</h2>
+                <div class="muted">ID ${data.id} • CPF: ${
+          data.cpf || "-"
+        } • Cel: ${data.celular || "-"}</div>
+                <div class="muted">Endereço: ${data.endereco || "-"}</div>
+              </div>
+              <div class="row">
+                <button class='btn' onclick="location.href='/dividas/novo?cliente_id=${
+                  data.id
+                }'">Lançar Dívida</button>
+                <button class='btn outline' onclick="location.href='/pagamentos/novo?cliente_id=${
+                  data.id
+                }'">Lançar Pagamento</button>
+              </div>
+            </div>
+          </div>`;
+
+        html += `<div class="section-title">Histórico de Dívidas</div>`;
+
+        if (!data.dividas || !data.dividas.length) {
+          html += `<div class="card muted">Nenhuma dívida registrada para este cliente.</div>`;
+        } else {
+          data.dividas.forEach((d) => {
+            const vencida =
+              Number(d.saldo) > 0 && new Date(d.vencimento) < new Date();
+            const isPaga = d.status === "Paga" || Number(d.saldo) === 0;
+            const isReneg = d.status === "Renegociada";
+            let badgeClass = "badge info";
+            let badgeText = d.status || "Pendente";
+            if (isPaga) {
+              badgeClass = "badge success";
+              badgeText = "Paga";
+            } else if (vencida) {
+              badgeClass = "badge danger";
+              badgeText = "Vencida";
+            } else if (isReneg) {
+              badgeClass = "badge warning";
+              badgeText = "Renegociada";
+            }
+
+            html += `<div class="card" style="margin:10px 0;">
+                <div class="row between" style="margin-bottom:6px;">
+                  <div><strong>#${d.id}</strong> — ${
+              d.descricao || "Sem descrição"
+            }</div>
+                  <span class="${badgeClass}">${badgeText}</span>
+                </div>
+                <div class="grid two" style="align-items:flex-start;">
+                  <div>
+                    <div class="muted" style="font-size:.78rem;">Valor Original</div>
+                    <div><strong>R$ ${fmtMoney(d.valor_original)}</strong></div>
+                  </div>
+                  <div>
+                    <div class="muted" style="font-size:.78rem;">Restante</div>
+                    <div><strong>R$ ${fmtMoney(d.saldo)}</strong></div>
+                  </div>
+                </div>
+                <div class="muted" style="margin-top:8px;">Vencimento: ${fmtDate(
+                  d.vencimento
+                )}</div>
+                ${
+                  d.pagamentos && d.pagamentos.length
+                    ? `
+                  <div style="margin-top:8px;">
+                    <div class="muted" style="font-size:.78rem; margin-bottom:4px;">Pagamentos</div>
+                    ${d.pagamentos
+                      .map(
+                        (
+                          p
+                        ) => `<div class="row" style="justify-content:space-between;">
+                        <div>${fmtDate(p.data)} (${p.meio})</div>
+                        <div><strong>R$ ${fmtMoney(p.valor)}</strong></div>
+                      </div>`
+                      )
+                      .join("")}
+                  </div>`
+                    : ""
+                }
+                ${
+                  d.renegociacoes && d.renegociacoes.length
+                    ? `
+                  <div style="margin-top:8px;">
+                    <div class="muted" style="font-size:.78rem; margin-bottom:4px;">Renegociações</div>
+                    ${d.renegociacoes
+                      .map(
+                        (r) =>
+                          `<div>${fmtDate(r.data)} → ${fmtDate(
+                            r.nova_data_venc
+                          )} (+${r.juros}%)</div>`
+                      )
+                      .join("")}
+                  </div>`
+                    : ""
+                }
+              </div>`;
+          });
+        }
+
         main.innerHTML = html;
       }
 

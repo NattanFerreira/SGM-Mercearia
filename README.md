@@ -154,7 +154,7 @@ Veja o arquivo `requirements.txt` para a lista completa.
 
 ---
 
-## 👨‍💻 Autor
+## 👨‍💻 Autores
 
 Desenvolvido por: 
 **Bruna Nunes** ([brun4nune5s](https://github.com/brun4nune5s)),

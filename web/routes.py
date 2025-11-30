@@ -54,22 +54,82 @@ def register_routes(app):
         # se admin, mostra dashboard; se caixa, mostra tela inicial em branco
         tipo = session.get('user_tipo')
         if tipo == 'Administrador':
-            # reuse dashboard data
+            # Dados base
             dividas = Divida.query.all()
+            pagamentos = Pagamento.query.all()
             hoje = date.today()
+
+            # KPIs
             total_a_receber = sum(d.saldo_devedor for d in dividas if d.status != 'Paga')
             total_vencido = sum(d.saldo_devedor for d in dividas if d.status != 'Paga' and d.data_vencimento < hoje)
             qtd_pagas = sum(1 for d in dividas if d.status == 'Paga')
 
+            # Ranking top devedores (aberto)
             ranking = {}
             for d in dividas:
                 if d.status == 'Paga':
                     continue
                 nome = d.cliente.nome
                 ranking[nome] = ranking.get(nome, 0) + d.saldo_devedor
+            ranking_ordenado = sorted(ranking.items(), key=lambda x: x[1], reverse=True)[:5]
+            top_labels = [n for n, _ in ranking_ordenado]
+            top_values = [v for _, v in ranking_ordenado]
 
-            ranking_ordenado = sorted(ranking.items(), key=lambda x: x[1], reverse=True)
-            return render_template('home.html', dashboard=True, total_a_receber=total_a_receber, total_vencido=total_vencido, qtd_pagas=qtd_pagas, ranking=ranking_ordenado[:5])
+            # Status/atraso
+            abertas = [d for d in dividas if d.status != 'Paga']
+            pagas_ct = len([d for d in dividas if d.status == 'Paga'])
+            vencidas_ct = len([d for d in abertas if d.data_vencimento < hoje])
+            em_dia_ct = len(abertas) - vencidas_ct
+
+            # Pagamentos por meio
+            meio_map = {}
+            for p in pagamentos:
+                meio = p.meio_pagamento or 'Outro'
+                meio_map[meio] = meio_map.get(meio, 0) + 1
+            meio_labels = list(meio_map.keys())
+            meio_values = list(meio_map.values())
+
+            # Dívidas criadas por mês (últimos 6 meses)
+            def ym(dt):
+                return dt.year, dt.month
+            from collections import defaultdict
+            by_month = defaultdict(float)
+            for d in dividas:
+                if d.data_venda:
+                    y, m = ym(d.data_venda)
+                    by_month[(y, m)] += float(d.valor_original or 0)
+            # montar últimos 6 meses
+            labels_month = []
+            values_month = []
+            ref = date(hoje.year, hoje.month, 1)
+            import calendar
+            for i in range(5, -1, -1):
+                # mês i meses atrás
+                y = ref.year
+                m = ref.month - i
+                while m <= 0:
+                    y -= 1
+                    m += 12
+                labels_month.append(f"{calendar.month_abbr[m]}/{str(y)[-2:]}")
+                values_month.append(round(by_month.get((y, m), 0.0), 2))
+
+            return render_template(
+                'home.html',
+                dashboard=True,
+                total_a_receber=total_a_receber,
+                total_vencido=total_vencido,
+                qtd_pagas=qtd_pagas,
+                ranking=ranking_ordenado,
+                # dados para gráficos
+                top_labels=top_labels,
+                top_values=top_values,
+                status_labels=['Pagas', 'Em dia', 'Vencidas'],
+                status_values=[pagas_ct, em_dia_ct, vencidas_ct],
+                meio_labels=meio_labels,
+                meio_values=meio_values,
+                month_labels=labels_month,
+                month_values=values_month,
+            )
 
         return render_template('home.html', dashboard=False)
 
@@ -171,6 +231,13 @@ def register_routes(app):
     def novo_divida():
         clientes = Cliente.query.all()
         preselect = request.args.get('cliente_id')
+        cliente_nome = None
+        
+        if preselect:
+            cliente_selecionado = Cliente.query.get(int(preselect))
+            if cliente_selecionado:
+                cliente_nome = cliente_selecionado.nome
+        
         if request.method == 'POST':
             cliente_id = int(request.form.get('cliente_id'))
             valor = float(request.form.get('valor'))
@@ -194,9 +261,36 @@ def register_routes(app):
             db.session.add(divida)
             db.session.commit()
             flash('Dívida registrada com sucesso.')
-            return redirect(url_for('main.listar_dividas'))
+            return redirect(url_for('main.home'))
 
-        return render_template('dividas_form.html', clientes=clientes, preselect=preselect)
+        return render_template('dividas_form.html', clientes=clientes, preselect=preselect, cliente_nome=cliente_nome)
+
+    @bp.route('/pagamentos/novo', methods=['GET', 'POST'])
+    @require_login
+    def novo_pagamento():
+        cliente_id = request.args.get('cliente_id', type=int)
+        
+        if cliente_id:
+            cliente = Cliente.query.get_or_404(cliente_id)
+            dividas = Divida.query.filter_by(cliente_id=cliente.id).filter(Divida.saldo_devedor > 0).all()
+        else:
+            cliente = None
+            dividas = Divida.query.filter(Divida.saldo_devedor > 0).all()
+        
+        if request.method == 'POST':
+            divida_id = int(request.form.get('divida_id'))
+            valor = float(request.form.get('valor'))
+            meio = request.form.get('meio')
+            usuario = request.form.get('usuario') or session.get('user_nome', 'Operador')
+
+            divida = Divida.query.get_or_404(divida_id)
+            pagamento = Pagamento(divida_id=divida.id, valor=valor, meio_pagamento=meio, usuario_responsavel=usuario)
+            divida.registrar_pagamento(pagamento)
+            db.session.commit()
+            flash('Pagamento registrado.')
+            return redirect(url_for('main.home'))
+
+        return render_template('pagamentos_form.html', dividas=dividas, cliente=cliente)
 
     @bp.route('/dividas/<int:divida_id>/pagar', methods=['GET', 'POST'])
     @require_login

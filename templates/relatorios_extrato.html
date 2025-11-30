@@ -13,8 +13,8 @@
 <div>
   <p>
     ID: {{ d.id }} — Valor Original: R$ {{ '%.2f'|format(d.valor_original) }} —
-    Saldo: R$ {{ '%.2f'|format(d.saldo_devedor) }} — Venc.: {{ d.data_vencimento
-    }} — Status: {{ d.status }}
+    Restante: R$ {{ '%.2f'|format(d.saldo_devedor) }} — Venc.: {{
+    d.data_vencimento }} — Status: {{ d.status }}
   </p>
 </div>
 {% endfor %}
