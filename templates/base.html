@@ -5,28 +5,145 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SGM - Mercearia</title>
     <style>
-      :root{--accent:#2b8a7a;--muted:#f2f2f2;--bg:#f4f7f6;--panel:#ffffff;--primary:#176B87}
-      body{font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;margin:0;background:var(--bg);color:#0f1720}
-      header{background:linear-gradient(90deg,var(--primary),#2b8a7a);padding:12px 18px;color:#fff;display:flex;align-items:center;justify-content:space-between;box-shadow:0 6px 18px rgba(15,23,32,0.06)}
-      header .left,header .center,header .right{display:flex;align-items:center}
-      header .center{flex:1;justify-content:center;font-weight:600}
-      .app-wrap{display:grid;grid-template-columns:280px 1fr 240px;gap:18px;min-height:calc(100vh - 36px);padding:18px;max-width:1200px;margin:18px auto}
-      aside{background:var(--panel);padding:14px;border-radius:10px;color:#0f1720;box-shadow:0 6px 18px rgba(15,23,32,0.04)}
-      main{background:var(--panel);padding:20px;border-radius:10px;min-height:520px;box-shadow:0 6px 18px rgba(15,23,32,0.04)}
-      .no-content{display:flex;align-items:center;justify-content:center;height:100%;color:#475569}
-      .flash{background:#e7f5e6;padding:10px;margin-bottom:10px;color:#064;border-radius:6px}
-      .btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600}
-      .btn.ghost{background:transparent;color:var(--primary);box-shadow:none;border:1px solid rgba(23,107,135,0.08)}
-      .btn.small{padding:6px 8px;font-size:0.9rem;border-radius:6px}
-      .icon-gear{margin-left:8px;cursor:pointer;font-size:1.1rem}
-      .search-input{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef0;background:#fbfcfc}
-      .client-list{margin-top:12px;padding:6px;max-height:64vh;overflow:auto}
-      .client-item{padding:10px;border-radius:8px;background:linear-gradient(180deg,rgba(0,0,0,0.02),transparent);margin-bottom:8px;cursor:pointer;transition:all .12s}
-      .client-item:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(15,23,32,0.06)}
-      .client-item.active{background:linear-gradient(90deg,var(--accent),#6cc8b0);color:#fff}
-      .client-name{font-weight:600}
-      .muted{color:#64748b}
-      @media(max-width:900px){.app-wrap{grid-template-columns:1fr;grid-template-rows:auto auto;max-width:92%;padding:12px}}
+      :root {
+        --accent: #2b8a7a;
+        --muted: #f2f2f2;
+        --bg: #f4f7f6;
+        --panel: #ffffff;
+        --primary: #176b87;
+      }
+      body {
+        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial,
+          sans-serif;
+        margin: 0;
+        background: var(--bg);
+        color: #0f1720;
+      }
+      header {
+        background: linear-gradient(90deg, var(--primary), #2b8a7a);
+        padding: 12px 18px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 6px 18px rgba(15, 23, 32, 0.06);
+      }
+      header .left,
+      header .center,
+      header .right {
+        display: flex;
+        align-items: center;
+      }
+      header .center {
+        flex: 1;
+        justify-content: center;
+        font-weight: 600;
+      }
+      .app-wrap {
+        display: grid;
+        grid-template-columns: 280px 1fr 240px;
+        gap: 18px;
+        min-height: calc(100vh - 36px);
+        padding: 18px;
+        max-width: 1200px;
+        margin: 18px auto;
+      }
+      aside {
+        background: var(--panel);
+        padding: 14px;
+        border-radius: 10px;
+        color: #0f1720;
+        box-shadow: 0 6px 18px rgba(15, 23, 32, 0.04);
+      }
+      main {
+        background: var(--panel);
+        padding: 20px;
+        border-radius: 10px;
+        min-height: 520px;
+        box-shadow: 0 6px 18px rgba(15, 23, 32, 0.04);
+      }
+      .no-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #475569;
+      }
+      .flash {
+        background: #e7f5e6;
+        padding: 10px;
+        margin-bottom: 10px;
+        color: #064;
+        border-radius: 6px;
+      }
+      .btn {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--primary);
+        box-shadow: none;
+        border: 1px solid rgba(23, 107, 135, 0.08);
+      }
+      .btn.small {
+        padding: 6px 8px;
+        font-size: 0.9rem;
+        border-radius: 6px;
+      }
+      .icon-gear {
+        margin-left: 8px;
+        cursor: pointer;
+        font-size: 1.1rem;
+      }
+      .search-input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #e6eef0;
+        background: #fbfcfc;
+      }
+      .client-list {
+        margin-top: 12px;
+        padding: 6px;
+        max-height: 64vh;
+        overflow: auto;
+      }
+      .client-item {
+        padding: 10px;
+        border-radius: 8px;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.02), transparent);
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: all 0.12s;
+      }
+      .client-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(15, 23, 32, 0.06);
+      }
+      .client-item.active {
+        background: linear-gradient(90deg, var(--accent), #6cc8b0);
+        color: #fff;
+      }
+      .client-name {
+        font-weight: 600;
+      }
+      .muted {
+        color: #64748b;
+      }
+      @media (max-width: 900px) {
+        .app-wrap {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto;
+          max-width: 92%;
+          padding: 12px;
+        }
+      }
     </style>
     <script>
       function goHome(){ window.location.href = {{ url_for('main.home')|tojson }}; }
@@ -48,7 +165,7 @@
       </div>
     </header>
 
-      <div class="app-wrap">
+    <div class="app-wrap">
       <aside>
         <input
           id="client-search"
@@ -57,12 +174,12 @@
         />
         <button
           id="btn-new-client"
-            class="btn"
-            style="float: right; margin-top: -40px"
+          class="btn"
+          style="float: right; margin-top: -40px"
         >
           +
         </button>
-          <div id="client-list" class="client-list"></div>
+        <div id="client-list" class="client-list"></div>
       </aside>
 
       <main id="main-content">
@@ -72,7 +189,14 @@
         {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
       </main>
 
-      <aside style="background:var(--panel);color:#0f1720;padding:10px;border-radius:6px">
+      <aside
+        style="
+          background: var(--panel);
+          color: #0f1720;
+          padding: 10px;
+          border-radius: 6px;
+        "
+      >
         <!-- espaço lateral direito para extras -->
         <h4>Atalhos</h4>
         <ul>
@@ -95,13 +219,15 @@
         list.innerHTML = "";
         data.forEach((c) => {
           const el = document.createElement("div");
-          el.classList.add('client-item');
+          el.classList.add("client-item");
           el.dataset.id = c.id;
           el.innerHTML = `<div class="client-name">${c.nome}</div><div class="muted">ID: ${c.id}</div>`;
           el.onclick = async () => {
             // remove active from others
-            document.querySelectorAll('.client-item').forEach(x=>x.classList.remove('active'));
-            el.classList.add('active');
+            document
+              .querySelectorAll(".client-item")
+              .forEach((x) => x.classList.remove("active"));
+            el.classList.add("active");
             await loadClient(c.id);
           };
           list.appendChild(el);
@@ -151,10 +277,14 @@
         main.innerHTML = html;
       }
 
-        document.getElementById("client-search").addEventListener("input", (e) => {
+      document
+        .getElementById("client-search")
+        .addEventListener("input", (e) => {
           fetchClients(e.target.value);
         });
-        document.getElementById("btn-new-client").addEventListener("click", () => {
+      document
+        .getElementById("btn-new-client")
+        .addEventListener("click", () => {
           location.href = "/clientes/novo";
         });
       // carregar lista inicial
