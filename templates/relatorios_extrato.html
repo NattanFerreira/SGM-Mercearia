@@ -12,9 +12,9 @@
 {% for d in dividas %}
 <div>
   <p>
-    Valor Original: R$ {{ '%.2f'|format(d.valor_original) }} —
-    Restante: R$ {{ '%.2f'|format(d.saldo_devedor) }} — Venc.: {{
-    d.data_vencimento }} — Status: {{ d.status }}
+    Valor Original: R$ {{ '%.2f'|format(d.valor_original) }} — Restante: R$ {{
+    '%.2f'|format(d.saldo_devedor) }} — Venc.: {{ d.data_vencimento }} — Status:
+    {{ d.status }}
   </p>
 </div>
 {% endfor %}

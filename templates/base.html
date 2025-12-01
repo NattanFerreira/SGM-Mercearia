@@ -383,8 +383,14 @@
         animation: modalSlideIn 0.2s ease;
       }
       @keyframes modalSlideIn {
-        from { transform: translateY(-20px); opacity: 0; }
-        to { transform: translateY(0); opacity: 1; }
+        from {
+          transform: translateY(-20px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
       }
       .modal-title {
         font-size: 1.3rem;
@@ -450,7 +456,13 @@
       <div class="center"><strong>{{ session.get('user_nome') }}</strong></div>
       <div class="right">
         {% if session.get('user_tipo') == 'Administrador' %}
-        <a href="{{ url_for('main.admin_config') }}" class="icon-gear" id="icon-gear" title="Configurações">⚙</a>
+        <a
+          href="{{ url_for('main.admin_config') }}"
+          class="icon-gear"
+          id="icon-gear"
+          title="Configurações"
+          >⚙</a
+        >
         {% endif %}
         <button class="btn" onclick="logout()">Sair</button>
       </div>
@@ -491,7 +503,9 @@
         <div class="modal-title" id="modal-confirm-title">Confirmar</div>
         <div class="modal-body" id="modal-confirm-body"></div>
         <div class="modal-actions">
-          <button class="btn ghost" onclick="closeModal('modal-confirm')">Cancelar</button>
+          <button class="btn ghost" onclick="closeModal('modal-confirm')">
+            Cancelar
+          </button>
           <button class="btn danger" id="modal-confirm-btn">Confirmar</button>
         </div>
       </div>
@@ -501,12 +515,28 @@
     <div id="modal-admin-auth" class="modal-overlay">
       <div class="modal-box">
         <div class="modal-title">Autenticação de Administrador</div>
-        <div class="modal-body">Para excluir esta dívida, insira as credenciais de um administrador:</div>
-        <input type="text" id="admin-usuario" class="modal-input" placeholder="Usuário administrador" />
-        <input type="password" id="admin-senha" class="modal-input" placeholder="Senha" />
+        <div class="modal-body">
+          Para excluir esta dívida, insira as credenciais de um administrador:
+        </div>
+        <input
+          type="text"
+          id="admin-usuario"
+          class="modal-input"
+          placeholder="Usuário administrador"
+        />
+        <input
+          type="password"
+          id="admin-senha"
+          class="modal-input"
+          placeholder="Senha"
+        />
         <div class="modal-actions">
-          <button class="btn ghost" onclick="closeModal('modal-admin-auth')">Cancelar</button>
-          <button class="btn danger" id="modal-admin-auth-btn">Confirmar Exclusão</button>
+          <button class="btn ghost" onclick="closeModal('modal-admin-auth')">
+            Cancelar
+          </button>
+          <button class="btn danger" id="modal-admin-auth-btn">
+            Confirmar Exclusão
+          </button>
         </div>
       </div>
     </div>
@@ -559,9 +589,9 @@
             <div class="row between">
               <div>
                 <h2 style="margin:0">${data.nome}</h2>
-                <div class="muted">CPF: ${
-          data.cpf || "-"
-        } • Cel: ${data.celular || "-"}</div>
+                <div class="muted">CPF: ${data.cpf || "-"} • Cel: ${
+          data.celular || "-"
+        }</div>
                 <div class="muted">Endereço: ${data.endereco || "-"}</div>
               </div>
               <div class="row">
@@ -656,7 +686,11 @@
                       ? `<button class="btn small" onclick="location.href='/dividas/${d.id}/renegociar'">⚡ Renegociar</button>`
                       : ""
                   }
-                  <button class="btn small danger" onclick="apagarDivida(${d.id}, '${d.descricao ? d.descricao.replace(/'/g, "\\'") : 'Sem descrição'}')">🗑 Apagar</button>
+                  <button class="btn small danger" onclick="apagarDivida(${
+                    d.id
+                  }, '${
+              d.descricao ? d.descricao.replace(/'/g, "\\'") : "Sem descrição"
+            }')">🗑 Apagar</button>
                 </div>
               </div>`;
           });
@@ -666,59 +700,64 @@
       }
 
       function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove('show');
+        document.getElementById(modalId).classList.remove("show");
       }
 
       function apagarDivida(dividaId, descricao) {
         const userTipo = '{{ session.get("user_tipo") }}';
-        if (userTipo === 'Administrador') {
+        if (userTipo === "Administrador") {
           // Modal de confirmação para admin
-          const modal = document.getElementById('modal-confirm');
-          document.getElementById('modal-confirm-title').textContent = 'Excluir Dívida';
-          document.getElementById('modal-confirm-body').innerHTML = `Tem certeza que deseja apagar a dívida:<br/><strong>"${descricao}"</strong><br/><br/>Esta ação não pode ser desfeita!`;
-          modal.classList.add('show');
-          
-          document.getElementById('modal-confirm-btn').onclick = function() {
-            fetch(`/dividas/${dividaId}/apagar`, {method: 'POST'})
-              .then(r => {
+          const modal = document.getElementById("modal-confirm");
+          document.getElementById("modal-confirm-title").textContent =
+            "Excluir Dívida";
+          document.getElementById(
+            "modal-confirm-body"
+          ).innerHTML = `Tem certeza que deseja apagar a dívida:<br/><strong>"${descricao}"</strong><br/><br/>Esta ação não pode ser desfeita!`;
+          modal.classList.add("show");
+
+          document.getElementById("modal-confirm-btn").onclick = function () {
+            fetch(`/dividas/${dividaId}/apagar`, { method: "POST" }).then(
+              (r) => {
                 if (r.ok) location.reload();
                 else {
-                  closeModal('modal-confirm');
-                  alert('Erro ao apagar dívida.');
+                  closeModal("modal-confirm");
+                  alert("Erro ao apagar dívida.");
                 }
-              });
+              }
+            );
           };
         } else {
           // Modal de autenticação para caixista
-          const modal = document.getElementById('modal-admin-auth');
-          modal.classList.add('show');
-          document.getElementById('admin-usuario').value = '';
-          document.getElementById('admin-senha').value = '';
-          
-          document.getElementById('modal-admin-auth-btn').onclick = function() {
-            const usuario = document.getElementById('admin-usuario').value;
-            const senha = document.getElementById('admin-senha').value;
-            if (!usuario || !senha) {
-              alert('Preencha usuário e senha.');
-              return;
-            }
-            fetch(`/dividas/${dividaId}/apagar`, {
-              method: 'POST',
-              headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({usuario, senha})
-            })
-            .then(r => {
-              if (r.ok) location.reload();
-              else r.text().then(t => {
-                closeModal('modal-admin-auth');
-                alert(t || 'Usuário/senha inválidos ou erro ao apagar.');
+          const modal = document.getElementById("modal-admin-auth");
+          modal.classList.add("show");
+          document.getElementById("admin-usuario").value = "";
+          document.getElementById("admin-senha").value = "";
+
+          document.getElementById("modal-admin-auth-btn").onclick =
+            function () {
+              const usuario = document.getElementById("admin-usuario").value;
+              const senha = document.getElementById("admin-senha").value;
+              if (!usuario || !senha) {
+                alert("Preencha usuário e senha.");
+                return;
+              }
+              fetch(`/dividas/${dividaId}/apagar`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ usuario, senha }),
+              }).then((r) => {
+                if (r.ok) location.reload();
+                else
+                  r.text().then((t) => {
+                    closeModal("modal-admin-auth");
+                    alert(t || "Usuário/senha inválidos ou erro ao apagar.");
+                  });
               });
-            });
-          };
+            };
         }
       }
 
-      document.addEventListener('DOMContentLoaded', function() {
+      document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById("client-search");
         if (searchInput) {
           searchInput.addEventListener("input", (e) => {
@@ -731,12 +770,12 @@
             location.href = "/clientes/novo";
           });
         }
-        const gear = document.getElementById('icon-gear');
+        const gear = document.getElementById("icon-gear");
         if (gear) {
-          gear.addEventListener('click', function(e) {
+          gear.addEventListener("click", function (e) {
             // Oculta a aside imediatamente
-            const appWrap = document.querySelector('.app-wrap');
-            if (appWrap) appWrap.classList.add('hide-aside');
+            const appWrap = document.querySelector(".app-wrap");
+            if (appWrap) appWrap.classList.add("hide-aside");
             // segue a navegação padrão
           });
         }

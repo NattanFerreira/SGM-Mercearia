@@ -16,7 +16,13 @@
     <td>{{ u.email }}</td>
     {% if session.get('user_tipo') == 'Administrador' %}
     <td>
-      <button class="btn danger" type="button" onclick="confirmDeleteUser({{ u.id }}, '{{ u.nome }}')">Remover</button>
+      <button
+        class="btn danger"
+        type="button"
+        onclick="confirmDeleteUser({{ u.id }}, '{{ u.nome }}')"
+      >
+        Remover
+      </button>
     </td>
     {% endif %}
   </tr>
@@ -30,28 +36,32 @@
     <div class="modal-body" id="modal-delete-user-body"></div>
     <div class="modal-actions">
       <button class="btn ghost" onclick="closeModalUser()">Cancelar</button>
-      <button class="btn danger" id="modal-delete-user-btn">Confirmar Exclusão</button>
+      <button class="btn danger" id="modal-delete-user-btn">
+        Confirmar Exclusão
+      </button>
     </div>
   </div>
 </div>
 
 <script>
-function closeModalUser() {
-  document.getElementById('modal-delete-user').classList.remove('show');
-}
+  function closeModalUser() {
+    document.getElementById("modal-delete-user").classList.remove("show");
+  }
 
-function confirmDeleteUser(userId, userName) {
-  const modal = document.getElementById('modal-delete-user');
-  document.getElementById('modal-delete-user-body').innerHTML = `Tem certeza que deseja excluir o usuário:<br/><strong>"${userName}"</strong><br/><br/>Esta ação não pode ser desfeita!`;
-  modal.classList.add('show');
-  
-  document.getElementById('modal-delete-user-btn').onclick = function() {
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = `/admin/usuarios/${userId}/delete`;
-    document.body.appendChild(form);
-    form.submit();
-  };
-}
+  function confirmDeleteUser(userId, userName) {
+    const modal = document.getElementById("modal-delete-user");
+    document.getElementById(
+      "modal-delete-user-body"
+    ).innerHTML = `Tem certeza que deseja excluir o usuário:<br/><strong>"${userName}"</strong><br/><br/>Esta ação não pode ser desfeita!`;
+    modal.classList.add("show");
+
+    document.getElementById("modal-delete-user-btn").onclick = function () {
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = `/admin/usuarios/${userId}/delete`;
+      document.body.appendChild(form);
+      form.submit();
+    };
+  }
 </script>
 {% endblock %}
