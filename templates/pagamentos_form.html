@@ -7,8 +7,7 @@
     <option value="">Selecione uma dívida</option>
     {% for d in dividas %}
     <option value="{{ d.id }}">
-      ID {{ d.id }} - {{ d.descricao }} (Restante: R$ {{
-      "%.2f"|format(d.saldo_devedor) }})
+      {{ d.descricao }} (Restante: R$ {{ "%.2f"|format(d.saldo_devedor) }})
     </option>
     {% endfor %}
   </select>

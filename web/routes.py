@@ -124,6 +124,20 @@ def register_routes(app):
                 labels_month.append(f"{calendar.month_abbr[m]}/{str(y)[-2:]}")
                 values_month.append(round(by_month.get((y, m), 0.0), 2))
 
+            # Buscar dívidas vencidas com detalhes
+            dividas_vencidas = []
+            for d in dividas:
+                if d.status != 'Paga' and d.saldo_devedor > 0 and d.data_vencimento <= hoje:
+                    dividas_vencidas.append({
+                        'id': d.id,
+                        'cliente_nome': d.cliente.nome,
+                        'descricao': d.descricao or 'Sem descrição',
+                        'saldo': d.saldo_devedor,
+                        'vencimento': d.data_vencimento
+                    })
+            # Ordenar por vencimento (mais antigas primeiro)
+            dividas_vencidas.sort(key=lambda x: x['vencimento'])
+
             return render_template(
                 'home.html',
                 dashboard=True,
@@ -131,6 +145,7 @@ def register_routes(app):
                 total_vencido=total_vencido,
                 qtd_pagas=qtd_pagas,
                 ranking=ranking_ordenado,
+                dividas_vencidas=dividas_vencidas,
                 # dados para gráficos
                 top_labels=top_labels,
                 top_values=top_values,
@@ -187,6 +202,12 @@ def register_routes(app):
             nivel = request.form.get('nivel') or 'Novo'
             limite = float(request.form.get('limite') or 200.0)
 
+            # Validar se cliente com mesmo nome já existe
+            cliente_existente = Cliente.query.filter_by(nome=nome).first()
+            if cliente_existente:
+                flash('Erro: Já existe um cliente cadastrado com este nome.')
+                return render_template('clientes_form.html')
+
             cliente = Cliente(nome=nome, cpf=cpf, celular=celular, endereco=endereco, nivel_confianca=nivel, limite_credito=limite)
             db.session.add(cliente)
             db.session.commit()
@@ -195,12 +216,38 @@ def register_routes(app):
 
         return render_template('clientes_form.html')
 
+    @bp.route('/clientes/<int:cliente_id>/apagar', methods=['POST'])
+    @require_admin
+    def apagar_cliente(cliente_id):
+        cliente = Cliente.query.get_or_404(cliente_id)
+        
+        # Apagar dívidas, pagamentos e renegociações associados
+        dividas = Divida.query.filter_by(cliente_id=cliente.id).all()
+        for d in dividas:
+            Pagamento.query.filter_by(divida_id=d.id).delete()
+            Renegociacao.query.filter_by(divida_id=d.id).delete()
+        Divida.query.filter_by(cliente_id=cliente.id).delete()
+        
+        # Apagar o cliente
+        db.session.delete(cliente)
+        db.session.commit()
+        
+        return '', 200
+
     # ---------------- Usuários (admin) ----------------
     @bp.route('/admin/usuarios')
     @require_admin
     def admin_usuarios():
         usuarios = Usuario.query.all()
         return render_template('usuarios_list.html', usuarios=usuarios)
+
+    # Configurações (admin)
+    @bp.route('/admin/config')
+    @require_admin
+    def admin_config():
+        clientes = Cliente.query.order_by(Cliente.nome).all()
+        usuarios = Usuario.query.order_by(Usuario.nome).all()
+        return render_template('admin_config.html', clientes=clientes, usuarios=usuarios, hide_aside=True)
 
     @bp.route('/admin/usuarios/novo', methods=['GET', 'POST'])
     @require_admin
@@ -211,8 +258,21 @@ def register_routes(app):
             email = request.form.get('email')
             tipo = request.form.get('tipo') or 'Caixa'
             senha = request.form.get('senha')
+            
+            # Validar se email já existe
+            if email:
+                usuario_existente = Usuario.query.filter_by(email=email).first()
+                if usuario_existente:
+                    flash('Erro: Já existe um usuário cadastrado com este email.')
+                    return render_template('usuarios_form.html')
+            
+            # Validar se nome já existe
+            usuario_nome_existente = Usuario.query.filter_by(nome=nome).first()
+            if usuario_nome_existente:
+                flash('Erro: Já existe um usuário cadastrado com este nome.')
+                return render_template('usuarios_form.html')
+            
             senha_hash = generate_password_hash(senha or '')
-
             usuario = Usuario(nome=nome, cpf=cpf, email=email, tipo=tipo, senha_hash=senha_hash)
             db.session.add(usuario)
             db.session.commit()
@@ -376,5 +436,34 @@ def register_routes(app):
                 total = sum(d.saldo_devedor for d in dividas_cliente)
 
         return render_template('relatorios_extrato.html', cliente=cliente, dividas=dividas_cliente, total=total)
+
+    # ---------------- Apagar Dívida ----------------
+    @bp.route('/dividas/<int:divida_id>/apagar', methods=['POST'])
+    @require_login
+    def apagar_divida(divida_id):
+        divida = Divida.query.get_or_404(divida_id)
+        
+        # Se for caixista, precisa validar credenciais de admin
+        if session.get('user_tipo') != 'Administrador':
+            data = request.get_json()
+            if not data:
+                return 'Credenciais de administrador necessárias', 400
+            
+            usuario = data.get('usuario')
+            senha = data.get('senha')
+            
+            admin = Usuario.query.filter((Usuario.nome == usuario) | (Usuario.email == usuario)).first()
+            if not admin or admin.tipo != 'Administrador' or not check_password_hash(admin.senha_hash, senha):
+                return 'Usuário/senha inválidos ou não é administrador', 403
+        
+        # Apagar pagamentos e renegociações associados
+        Pagamento.query.filter_by(divida_id=divida.id).delete()
+        Renegociacao.query.filter_by(divida_id=divida.id).delete()
+        
+        # Apagar a dívida
+        db.session.delete(divida)
+        db.session.commit()
+        
+        return '', 200
 
     app.register_blueprint(bp)

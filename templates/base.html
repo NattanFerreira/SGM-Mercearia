@@ -69,6 +69,12 @@
         max-width: 1200px;
         margin: 18px auto;
       }
+      .app-wrap.hide-aside {
+        grid-template-columns: 1fr;
+      }
+      .app-wrap.hide-aside .layout-aside {
+        display: none;
+      }
       aside {
         background: var(--panel);
         padding: 14px;
@@ -334,7 +340,88 @@
       .icon-gear {
         margin-left: 8px;
         cursor: pointer;
-        font-size: 1.1rem;
+        font-size: 1.3rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        transition: all 0.2s ease;
+        text-decoration: none;
+      }
+      .icon-gear:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: rotate(90deg);
+      }
+
+      /* Modal */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 32, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-overlay.show {
+        display: flex;
+      }
+      .modal-box {
+        background: #fff;
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 440px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(15, 23, 32, 0.2);
+        animation: modalSlideIn 0.2s ease;
+      }
+      @keyframes modalSlideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      .modal-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: var(--text);
+      }
+      .modal-body {
+        color: var(--muted);
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+      .modal-input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #e6eef0;
+        background: #fbfcfc;
+        outline: none;
+        margin-bottom: 12px;
+        transition: box-shadow 0.15s ease, border-color 0.15s ease;
+      }
+      .modal-input:focus {
+        border-color: var(--primary);
+        box-shadow: var(--ring);
+      }
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+      }
+      .btn.danger {
+        background: var(--danger);
+      }
+      .btn.danger:hover {
+        filter: brightness(1.05);
+        box-shadow: 0 8px 20px rgba(220, 38, 38, 0.25);
       }
 
       @media (max-width: 900px) {
@@ -363,14 +450,15 @@
       <div class="center"><strong>{{ session.get('user_nome') }}</strong></div>
       <div class="right">
         {% if session.get('user_tipo') == 'Administrador' %}
-        <a href="{{ url_for('main.admin_usuarios') }}" class="icon-gear">⚙</a>
+        <a href="{{ url_for('main.admin_config') }}" class="icon-gear" id="icon-gear" title="Configurações">⚙</a>
         {% endif %}
         <button class="btn" onclick="logout()">Sair</button>
       </div>
     </header>
 
-    <div class="app-wrap">
-      <aside>
+    <div class="app-wrap{% if hide_aside %} hide-aside{% endif %}">
+      {% if not hide_aside %}
+      <aside class="layout-aside">
         <div class="search-row">
           <input
             id="client-search"
@@ -387,6 +475,7 @@
         </div>
         <div id="client-list" class="client-list"></div>
       </aside>
+      {% endif %}
 
       <main id="main-content">
         {% with messages = get_flashed_messages() %} {% if messages %} {% for m
@@ -394,6 +483,32 @@
         <div class="flash">{{ m }}</div>
         {% endfor %} {% endif %} {% endwith %} {% block content %}{% endblock %}
       </main>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="modal-confirm" class="modal-overlay">
+      <div class="modal-box">
+        <div class="modal-title" id="modal-confirm-title">Confirmar</div>
+        <div class="modal-body" id="modal-confirm-body"></div>
+        <div class="modal-actions">
+          <button class="btn ghost" onclick="closeModal('modal-confirm')">Cancelar</button>
+          <button class="btn danger" id="modal-confirm-btn">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Autenticação Admin -->
+    <div id="modal-admin-auth" class="modal-overlay">
+      <div class="modal-box">
+        <div class="modal-title">Autenticação de Administrador</div>
+        <div class="modal-body">Para excluir esta dívida, insira as credenciais de um administrador:</div>
+        <input type="text" id="admin-usuario" class="modal-input" placeholder="Usuário administrador" />
+        <input type="password" id="admin-senha" class="modal-input" placeholder="Senha" />
+        <div class="modal-actions">
+          <button class="btn ghost" onclick="closeModal('modal-admin-auth')">Cancelar</button>
+          <button class="btn danger" id="modal-admin-auth-btn">Confirmar Exclusão</button>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -406,7 +521,7 @@
           const el = document.createElement("div");
           el.classList.add("client-item");
           el.dataset.id = c.id;
-          el.innerHTML = `<div class="client-name">${c.nome}</div><div class="muted">ID: ${c.id}</div>`;
+          el.innerHTML = `<div class="client-name">${c.nome}</div>`;
           el.onclick = async () => {
             // remove active from others
             document
@@ -444,7 +559,7 @@
             <div class="row between">
               <div>
                 <h2 style="margin:0">${data.nome}</h2>
-                <div class="muted">ID ${data.id} • CPF: ${
+                <div class="muted">CPF: ${
           data.cpf || "-"
         } • Cel: ${data.celular || "-"}</div>
                 <div class="muted">Endereço: ${data.endereco || "-"}</div>
@@ -485,9 +600,7 @@
 
             html += `<div class="card" style="margin:10px 0;">
                 <div class="row between" style="margin-bottom:6px;">
-                  <div><strong>#${d.id}</strong> — ${
-              d.descricao || "Sem descrição"
-            }</div>
+                  <div><strong>${d.descricao || "Sem descrição"}</strong></div>
                   <span class="${badgeClass}">${badgeText}</span>
                 </div>
                 <div class="grid two" style="align-items:flex-start;">
@@ -537,13 +650,14 @@
                   </div>`
                     : ""
                 }
-                ${
-                  vencida
-                    ? `<div style="margin-top:10px;">
-                        <button class="btn small" onclick="location.href='/dividas/${d.id}/renegociar'">⚡ Renegociar</button>
-                      </div>`
-                    : ""
-                }
+                <div style="margin-top:10px; display:flex; gap:8px;">
+                  ${
+                    vencida
+                      ? `<button class="btn small" onclick="location.href='/dividas/${d.id}/renegociar'">⚡ Renegociar</button>`
+                      : ""
+                  }
+                  <button class="btn small danger" onclick="apagarDivida(${d.id}, '${d.descricao ? d.descricao.replace(/'/g, "\\'") : 'Sem descrição'}')">🗑 Apagar</button>
+                </div>
               </div>`;
           });
         }
@@ -551,18 +665,83 @@
         main.innerHTML = html;
       }
 
-      document
-        .getElementById("client-search")
-        .addEventListener("input", (e) => {
-          fetchClients(e.target.value);
-        });
-      document
-        .getElementById("btn-new-client")
-        .addEventListener("click", () => {
-          location.href = "/clientes/novo";
-        });
-      // carregar lista inicial
-      fetchClients();
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('show');
+      }
+
+      function apagarDivida(dividaId, descricao) {
+        const userTipo = '{{ session.get("user_tipo") }}';
+        if (userTipo === 'Administrador') {
+          // Modal de confirmação para admin
+          const modal = document.getElementById('modal-confirm');
+          document.getElementById('modal-confirm-title').textContent = 'Excluir Dívida';
+          document.getElementById('modal-confirm-body').innerHTML = `Tem certeza que deseja apagar a dívida:<br/><strong>"${descricao}"</strong><br/><br/>Esta ação não pode ser desfeita!`;
+          modal.classList.add('show');
+          
+          document.getElementById('modal-confirm-btn').onclick = function() {
+            fetch(`/dividas/${dividaId}/apagar`, {method: 'POST'})
+              .then(r => {
+                if (r.ok) location.reload();
+                else {
+                  closeModal('modal-confirm');
+                  alert('Erro ao apagar dívida.');
+                }
+              });
+          };
+        } else {
+          // Modal de autenticação para caixista
+          const modal = document.getElementById('modal-admin-auth');
+          modal.classList.add('show');
+          document.getElementById('admin-usuario').value = '';
+          document.getElementById('admin-senha').value = '';
+          
+          document.getElementById('modal-admin-auth-btn').onclick = function() {
+            const usuario = document.getElementById('admin-usuario').value;
+            const senha = document.getElementById('admin-senha').value;
+            if (!usuario || !senha) {
+              alert('Preencha usuário e senha.');
+              return;
+            }
+            fetch(`/dividas/${dividaId}/apagar`, {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({usuario, senha})
+            })
+            .then(r => {
+              if (r.ok) location.reload();
+              else r.text().then(t => {
+                closeModal('modal-admin-auth');
+                alert(t || 'Usuário/senha inválidos ou erro ao apagar.');
+              });
+            });
+          };
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById("client-search");
+        if (searchInput) {
+          searchInput.addEventListener("input", (e) => {
+            fetchClients(e.target.value);
+          });
+        }
+        const btnNewClient = document.getElementById("btn-new-client");
+        if (btnNewClient) {
+          btnNewClient.addEventListener("click", () => {
+            location.href = "/clientes/novo";
+          });
+        }
+        const gear = document.getElementById('icon-gear');
+        if (gear) {
+          gear.addEventListener('click', function(e) {
+            // Oculta a aside imediatamente
+            const appWrap = document.querySelector('.app-wrap');
+            if (appWrap) appWrap.classList.add('hide-aside');
+            // segue a navegação padrão
+          });
+        }
+        fetchClients();
+      });
     </script>
 
     {% else %} {% with messages = get_flashed_messages() %} {% if messages %} {%

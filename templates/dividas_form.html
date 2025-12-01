@@ -4,13 +4,13 @@
 <form method="post">
   {% if preselect %}
   <input type="hidden" name="cliente_id" value="{{ preselect }}" />
-  <p><strong>Cliente:</strong> {{ cliente_nome }} (ID: {{ preselect }})</p>
+  <p><strong>Cliente:</strong> {{ cliente_nome }}</p>
   {% else %}
   <label>Cliente:</label><br />
   <select name="cliente_id" required>
     <option value="">Selecione um cliente</option>
     {% for c in clientes %}
-    <option value="{{ c.id }}">{{ c.nome }} (ID: {{ c.id }})</option>
+    <option value="{{ c.id }}">{{ c.nome }}</option>
     {% endfor %}
   </select>
   <br /><br />
