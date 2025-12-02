@@ -2,6 +2,7 @@ from app import create_app
 from web.models import db, Usuario, Cliente, Divida, Pagamento, Renegociacao, Parcela
 from werkzeug.security import generate_password_hash
 from datetime import date, timedelta
+from dateutil.relativedelta import relativedelta
 import random
 
 app = create_app()
@@ -177,7 +178,8 @@ with app.app_context():
                 
                 # 70% de chance de ter pagamento parcial
                 if random.random() < 0.7:
-                    valor_pago = random.randint(30, int(divida.saldo_devedor // 2))
+                    valor_max = max(30, int(divida.saldo_devedor // 2))
+                    valor_pago = random.randint(30, valor_max)
                     pagamento = Pagamento(
                         divida_id=divida.id,
                         valor=valor_pago,
@@ -195,12 +197,14 @@ with app.app_context():
                 valor_total = valor * (1 + juros / 100) if tem_juros else valor
                 valor_parcela = valor_total / num_parcelas
                 
+                data_venda = hoje - timedelta(days=random.randint(1, 30))
+                
                 divida = Divida(
                     cliente_id=cliente.id,
                     valor_original=valor,
                     saldo_devedor=valor_total,
-                    data_venda=hoje - timedelta(days=random.randint(1, 30)),
-                    data_vencimento=hoje + timedelta(days=30 * num_parcelas),
+                    data_venda=data_venda,
+                    data_vencimento=data_venda + relativedelta(months=num_parcelas),
                     descricao=f'{descricao} ({num_parcelas}x)',
                     status='Pendente',
                     parcelado=True,
@@ -210,10 +214,9 @@ with app.app_context():
                 db.session.add(divida)
                 db.session.flush()
                 
-                # Criar parcelas
-                dias_entre_parcelas = 30
+                # Criar parcelas (mesma data do mês seguinte)
                 for parcela_num in range(1, num_parcelas + 1):
-                    vencimento_parcela = hoje + timedelta(days=dias_entre_parcelas * parcela_num)
+                    vencimento_parcela = data_venda + relativedelta(months=parcela_num)
                     
                     # Define status da parcela baseado no vencimento e se foi paga
                     if vencimento_parcela < hoje:

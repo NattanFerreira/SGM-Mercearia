@@ -15,6 +15,7 @@ Organização:
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
 from web.models import db, Cliente, Usuario, Divida, Pagamento, Renegociacao, Parcela
 from datetime import datetime, date, timedelta
+from dateutil.relativedelta import relativedelta
 from werkzeug.security import check_password_hash, generate_password_hash
 from collections import defaultdict
 import calendar
@@ -486,10 +487,10 @@ def register_routes(app):
             if num_parcelas > 1:
                 from web.models import Parcela
                 valor_parcela = valor_total / num_parcelas
-                dias_entre_parcelas = prazo // num_parcelas if prazo > 0 else 30
                 
                 for i in range(1, num_parcelas + 1):
-                    vencimento_parcela = date.today() + timedelta(days=dias_entre_parcelas * i)
+                    # Vencimento: mesmo dia do próximo mês (1ª parcela = +1 mês, 2ª = +2 meses, etc)
+                    vencimento_parcela = date.today() + relativedelta(months=i)
                     parcela = Parcela(
                         divida_id=divida.id,
                         numero_parcela=i,
@@ -500,7 +501,7 @@ def register_routes(app):
                     db.session.add(parcela)
                 
                 # Atualiza data de vencimento da dívida para a última parcela
-                divida.data_vencimento = date.today() + timedelta(days=dias_entre_parcelas * num_parcelas)
+                divida.data_vencimento = date.today() + relativedelta(months=num_parcelas)
             
             # Renegocia dívidas pendentes (após criar a nova)
             for d in pendentes:
@@ -541,9 +542,30 @@ def register_routes(app):
             valor = float(request.form.get('valor'))
             meio = request.form.get('meio')
             usuario = request.form.get('usuario') or session.get('user_nome', 'Operador')
+            parcela_id = request.form.get('parcela_id', type=int)
 
             # Registra o pagamento
             divida = Divida.query.get_or_404(divida_id)
+            
+            # Se for dívida parcelada, valida a parcela
+            if divida.parcelado and parcela_id:
+                parcela = Parcela.query.get_or_404(parcela_id)
+                
+                # Valida se o valor não excede o restante da parcela (com margem de 1 centavo)
+                valor_restante = parcela.valor_parcela - parcela.valor_pago
+                if valor > valor_restante + 0.01:
+                    flash(f'Valor excede o restante da parcela (R$ {valor_restante:.2f})')
+                    return redirect(url_for('main.novo_pagamento', cliente_id=cliente_id))
+                
+                # Atualiza a parcela
+                valor_efetivo = min(valor, valor_restante)
+                parcela.valor_pago += valor_efetivo
+                if parcela.valor_pago >= parcela.valor_parcela - 0.01:
+                    parcela.status = 'Paga'
+                    parcela.valor_pago = parcela.valor_parcela
+                
+                db.session.add(parcela)
+            
             pagamento = Pagamento(
                 divida_id=divida.id,
                 valor=valor,
@@ -556,7 +578,30 @@ def register_routes(app):
             flash('Pagamento registrado com sucesso.')
             return redirect(url_for('main.home') + f'?cliente_id={divida.cliente_id}')
 
-        return render_template('pagamentos_form.html', dividas=dividas, cliente=cliente)
+        # Preparar dados das dívidas com parcelas serializadas
+        dividas_data = []
+        for d in dividas:
+            parcelas_list = []
+            if d.parcelado:
+                for p in d.parcelas:
+                    parcelas_list.append({
+                        'id': p.id,
+                        'numero': p.numero_parcela,
+                        'valor_parcela': p.valor_parcela,
+                        'data_vencimento': p.data_vencimento.isoformat(),
+                        'status': p.status,
+                        'valor_pago': p.valor_pago
+                    })
+            
+            dividas_data.append({
+                'id': d.id,
+                'descricao': d.descricao,
+                'saldo_devedor': d.saldo_devedor,
+                'parcelado': d.parcelado,
+                'parcelas': parcelas_list
+            })
+        
+        return render_template('pagamentos_form.html', dividas=dividas_data, cliente=cliente)
 
     @bp.route('/dividas/<int:divida_id>/pagar', methods=['GET', 'POST'])
     @require_login
