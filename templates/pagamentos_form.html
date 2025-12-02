@@ -1,0 +1,33 @@
+{% extends 'base.html' %} {% block content %}
+<h2>Lançar Pagamento{% if cliente %} - {{ cliente.nome }}{% endif %}</h2>
+
+<form method="post">
+  <label>Dívida:</label><br />
+  <select name="divida_id" required>
+    <option value="">Selecione uma dívida</option>
+    {% for d in dividas %}
+    <option value="{{ d.id }}">
+      {{ d.descricao }} (Restante: R$ {{ "%.2f"|format(d.saldo_devedor) }})
+    </option>
+    {% endfor %}
+  </select>
+  <br /><br />
+
+  <label>Valor do Pagamento:</label><br />
+  <input type="number" step="0.01" name="valor" required />
+  <br /><br />
+
+  <label>Meio de Pagamento:</label><br />
+  <select name="meio">
+    <option value="Dinheiro">Dinheiro</option>
+    <option value="Pix">Pix</option>
+    <option value="Cartão">Cartão</option>
+    <option value="Boleto">Boleto</option>
+  </select>
+  <br /><br />
+
+  <input type="hidden" name="usuario" value="{{ session.get('user_nome') }}" />
+  <button class="btn" type="submit">Registrar Pagamento</button>
+  <a href="{{ url_for('main.home') }}" class="btn ghost">Cancelar</a>
+</form>
+{% endblock %}
