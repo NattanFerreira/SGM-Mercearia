@@ -144,10 +144,9 @@ Veja o arquivo `requirements.txt` para a lista completa.
 
 ##  Melhorias Futuras (Roadmap)
 
-- [ ] Proteção CSRF com Flask-WTF
-- [ ] Hashing de senha com bcrypt (mais seguro)
+- [ ] Interface gráfica aprimorada (CSS Framework)
 - [ ] Validação avançada de formulários
-- [ ] Edição/exclusão de clientes e dívidas
+- [ ] Edição de usuário, clientes e dívidas
 - [ ] Exportação de relatórios em PDF
 - [ ] Testes automatizados (pytest)
 - [ ] Deploy em servidor de produção (Gunicorn + Nginx)
