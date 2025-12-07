@@ -72,14 +72,35 @@ A aplicação estará disponível em: **http://127.0.0.1:5000**
 
 ---
 
-##  Login Inicial
+## 🗺 Como Navegar/Testar o Protótipo
 
-Na primeira execução, o sistema cria automaticamente um usuário administrador:
+Use o roteiro abaixo para testar as principais funcionalidades do sistema, começando com o usuário administrador padrão.
 
-- **Usuário**: `adm`
-- **Senha**: `adm`
+### 1. Login Inicial
 
-> **Importante**: Altere essa senha após o primeiro acesso para garantir a segurança do sistema.
+Na primeira execução, o sistema cria automaticamente um usuário com privilégios de **Administrador**.
+
+| Parâmetro | Valor |
+| :--- | :--- |
+| **Usuário** | `adm` |
+| **Senha** | `adm` |
+
+> ⚠️ **Importante**: Por segurança, a primeira ação recomendada é acessar a área de usuários e alterar a senha padrão do administrador.
+
+### 2. Fluxo de Teste Básico (CRUD Financeiro)
+
+1.  **Acessar a Home:** Após o login, você será direcionado para o painel inicial.
+2.  **Cadastrar um Cliente:**
+    * Acesse a seção de **Clientes** no menu lateral.
+    * Clique em **Adicionar Cliente** e preencha o formulário.
+3.  **Lançar uma Dívida:**
+    * Use a barra de busca para encontrar o cliente recém-cadastrado e acesse seu perfil.
+    * Clique em **Lançar Dívida**. Insira um valor, descrição e data de vencimento.
+4.  **Registrar um Pagamento:**
+    * No perfil do cliente, selecione a dívida pendente.
+    * Clique em **Registrar Pagamento** e insira o valor pago (pode ser parcial). O sistema calculará o saldo restante.
+5.  **Acessar Relatórios (Apenas Admin):**
+    * Acesse o menu lateral e clique em **Relatórios** para visualizar o dashboard financeiro e os extratos detalhados.
 
 ---
 
