@@ -72,7 +72,7 @@ A aplicação estará disponível em: **http://127.0.0.1:5000**
 
 ---
 
-## 🗺 Como Navegar/Testar o Protótipo
+## Como Navegar/Testar o Protótipo
 
 Use o roteiro abaixo para testar as principais funcionalidades do sistema, começando com o usuário administrador padrão.
 
@@ -85,7 +85,7 @@ Na primeira execução, o sistema cria automaticamente um usuário com privilég
 | **Usuário** | `adm` |
 | **Senha** | `adm` |
 
-> ⚠️ **Importante**: Por segurança, a primeira ação recomendada é acessar a área de usuários e alterar a senha padrão do administrador.
+>  **Importante**: Por segurança, a primeira ação recomendada é acessar a área de usuários e alterar a senha padrão do administrador.
 
 ### 2. Fluxo de Teste Básico (CRUD Financeiro)
 
